@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAP RAG Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <style>
+        /* CSS variables for Light Mode (default, high-contrast, extremely visible) */
+        :root {
+            --bg-color: #f1f5f9;
+            --bg-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+            --card-bg: #ffffff;
+            --card-border: #cbd5e1;
+            --accent-primary: #4f46e5;
+            --accent-secondary: #7c3aed;
+            --text-main: #0f172a;
+            --text-muted: #334155;
+            --glow-color: rgba(79, 70, 229, 0.15);
+            --input-bg: #ffffff;
+            --input-border: #94a3b8;
+            --input-text: #0f172a;
+            --result-card-bg: #f8fafc;
+            --agent-bg: #faf5ff;
+            --agent-border: #d8b4fe;
+            --agent-text: #5b21b6;
+            --doc-bg: #ffffff;
+            --doc-border-color: #e2e8f0;
+            --doc-accent: #4f46e5;
+            --label-color: #1e293b;
+        }
+
+        /* CSS variables override for Dark Mode */
+        [data-theme="dark"] {
+            --bg-color: #0b0f19;
+            --bg-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+            --card-bg: #161e31;
+            --card-border: rgba(255, 255, 255, 0.15);
+            --accent-primary: #818cf8;
+            --accent-secondary: #c084fc;
+            --text-main: #f8fafc;
+            --text-muted: #e2e8f0;
+            --glow-color: rgba(129, 140, 248, 0.3);
+            --input-bg: #0d121e;
+            --input-border: rgba(255, 255, 255, 0.3);
+            --input-text: #f8fafc;
+            --result-card-bg: #0d121e;
+            --agent-bg: rgba(192, 132, 252, 0.15);
+            --agent-border: rgba(192, 132, 252, 0.5);
+            --agent-text: #f3e8ff;
+            --doc-bg: rgba(255, 255, 255, 0.04);
+            --doc-border-color: rgba(255, 255, 255, 0.08);
+            --doc-accent: #818cf8;
+            --label-color: #f1f5f9;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: var(--bg-image);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 40px 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container-box {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        /* Subtle glowing border on hover */
+        .container-box:hover {
+            box-shadow: 0 15px 35px var(--glow-color);
+            border-color: var(--accent-primary);
+        }
+
+        /* Top header bar with Theme Toggle */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .theme-toggle-btn {
+            background: var(--result-card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-1px);
+            border-color: var(--accent-primary);
+        }
+
+        h2 {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-main) 30%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .sub-text {
+            color: var(--text-muted);
+            font-weight: 450;
+        }
+
+        .form-label {
+            color: var(--label-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--input-bg);
+            border: 2px solid var(--input-border);
+            color: var(--input-text);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control::placeholder {
+            color: #64748b;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--input-bg);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--glow-color);
+            color: var(--input-text);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border: none;
+            color: white;
+            padding: 14px 28px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px var(--glow-color);
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--glow-color);
+            opacity: 0.95;
+        }
+
+        .btn-gradient:active {
+            transform: translateY(1px);
+        }
+
+        /* Loading / Processing animation */
+        .spinner-wrapper {
+            display: none;
+            text-align: center;
+            margin: 24px 0;
+        }
+
+        .spinner-custom {
+            width: 3.5rem;
+            height: 3.5rem;
+            border: 0.4em solid var(--card-border);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 32px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card {
+            background: var(--result-card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .answer-text {
+            font-size: 1.15rem;
+            font-weight: 500;
+            line-height: 1.7;
+            color: var(--text-main);
+            white-space: pre-line;
+        }
+
+        .doc-item {
+            background: var(--doc-bg);
+            border: 1px solid var(--doc-border-color);
+            border-left: 5px solid var(--doc-accent);
+            border-radius: 0 12px 12px 0;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .doc-item:hover {
+            background: var(--result-card-bg);
+            transform: translateX(4px);
+        }
+
+        .agent-output-box {
+            background: var(--agent-bg);
+            border: 2px dashed var(--agent-border);
+            color: var(--agent-text);
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .badge-doc {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background-color: var(--accent-primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="container-box">
+                    
+                    <!-- Header with title and Theme Toggle -->
+                    <div class="header-bar">
+                        <div>
+                            <h2>🔍 SAP AI RAG Assistant</h2>
+                            <p class="sub-text mb-0">Perform semantic search across SAP documents and apply agentic actions</p>
+                        </div>
+                        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">
+                            <span id="themeToggleIcon">🌙</span> <span id="themeToggleText">Dark Mode</span>
+                        </button>
+                    </div>
+
+                    <!-- Input Section -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-8">
+                            <label for="question" class="form-label">YOUR QUESTION</label>
+                            <input type="text" id="question" class="form-control" placeholder="e.g., What is SAP FI financial posting?">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="agentAction" class="form-label">AGENT ACTION</label>
+                            <select id="agentAction" class="form-select">
+                                <option value="">No action (Pure RAG)</option>
+                                <option value="summarize">Summarize Results</option>
+                                <option value="extract_financial_lines">Extract Financial Lines</option>
+                                <option value="run_report_simulation">Run Report Simulation</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-gradient w-100" id="btnAsk" onclick="askQuery()">Retrieve & Process</button>
+
+                    <!-- Loading Spinner -->
+                    <div class="spinner-wrapper" id="spinnerWrapper">
+                        <div class="spinner-custom"></div>
+                        <div class="text-muted mt-2 fw-semibold">Running semantic search and synthesizing answer...</div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div class="results-section" id="resultsSection">
+                        <!-- Main Answer -->
+                        <div class="result-card">
+                            <div class="section-title">
+                                <span>💡 synthesized response</span>
+                            </div>
+                            <div class="answer-text" id="answerBox"></div>
+                        </div>
+
+                        <!-- Agentic Analysis -->
+                        <div class="result-card" id="agentSection" style="display: none;">
+                            <div class="section-title">
+                                <span>🤖 agentic processing output</span>
+                            </div>
+                            <div class="agent-output-box" id="agentBox"></div>
+                        </div>
+
+                        <!-- Retrieved Documents -->
+                        <div class="result-card">
+                            <div class="section-title">
+                                <span>📂 retrieved sap context (FAISS)</span>
+                            </div>
+                            <div id="retrievedBox"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init theme from storage or default to light
+        const currentTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", currentTheme);
+        updateToggleBtnUI(currentTheme);
+
+        function toggleTheme() {
+            const htmlEl = document.documentElement;
+            let targetTheme = "light";
+            
+            if (htmlEl.getAttribute("data-theme") === "light") {
+                targetTheme = "dark";
+            }
+            
+            htmlEl.setAttribute("data-theme", targetTheme);
+            localStorage.setItem("theme", targetTheme);
+            updateToggleBtnUI(targetTheme);
+        }
+
+        function updateToggleBtnUI(theme) {
+            const iconEl = document.getElementById("themeToggleIcon");
+            const textEl = document.getElementById("themeToggleText");
+            if (theme === "dark") {
+                iconEl.innerText = "☀️";
+                textEl.innerText = "Light Mode";
+            } else {
+                iconEl.innerText = "🌙";
+                textEl.innerText = "Dark Mode";
+            }
+        }
+
+        async function askQuery() {
+            const question = document.getElementById("question").value.trim();
+            const agentAction = document.getElementById("agentAction").value;
+            const btnAsk = document.getElementById("btnAsk");
+            const spinnerWrapper = document.getElementById("spinnerWrapper");
+            const resultsSection = document.getElementById("resultsSection");
+            const answerBox = document.getElementById("answerBox");
+            const agentSection = document.getElementById("agentSection");
+            const agentBox = document.getElementById("agentBox");
+            const retrievedBox = document.getElementById("retrievedBox");
+
+            if (!question) {
+                alert("Please enter a question.");
+                return;
+            }
+
+            // UI loading state
+            btnAsk.disabled = true;
+            spinnerWrapper.style.display = "block";
+            resultsSection.style.opacity = "0.5";
+
+            try {
+                const payload = { question: question };
+                if (agentAction) {
+                    payload.agent_action = agentAction;
+                }
+
+                const response = await fetch("/ask", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server responded with error status");
+                }
+
+                const data = await response.json();
+
+                // Display results
+                answerBox.innerText = data.answer || "No answer returned.";
+                
+                // Show agent output if any
+                if (data.agent_output) {
+                    agentSection.style.display = "block";
+                    if (Array.isArray(data.agent_output)) {
+                        agentBox.innerHTML = data.agent_output.map(line => `<div class="mb-1">• ${line}</div>`).join('');
+                    } else {
+                        agentBox.innerText = data.agent_output;
+                    }
+                } else {
+                    agentSection.style.display = "none";
+                }
+
+                // Show retrieved documents
+                if (data.retrieved && data.retrieved.length > 0) {
+                    retrievedBox.innerHTML = data.retrieved.map((doc, idx) => `
+                        <div class="doc-item">
+                            <div class="mb-2"><span class="badge-doc">Doc #${idx + 1}</span></div>
+                            <div>${doc}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    retrievedBox.innerHTML = `<div class="text-muted small">No documents retrieved.</div>`;
+                }
+
+                // Reveal section
+                resultsSection.style.display = "block";
+                resultsSection.style.opacity = "1";
+
+            } catch (error) {
+                console.error(error);
+                alert("Error connecting to the Flask server. Please check the logs.");
+            } finally {
+                btnAsk.disabled = false;
+                spinnerWrapper.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>

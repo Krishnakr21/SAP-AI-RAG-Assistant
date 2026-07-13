@@ -1,0 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+
+# OS generated files
+.DS_Store
+
+# FAISS and download models (if any local cache gets created)
+embeddings/faiss_index.bin
+*.bin
